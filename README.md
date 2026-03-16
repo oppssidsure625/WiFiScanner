@@ -1,7 +1,5 @@
 # Wi-Fi Analyzer Pro for macOS 🛜
 
-A professional-grade Wi-Fi scanning and analysis tool built with SwiftUI. Designed for network engineers to provide precise, real-time wireless insights.
-
 <p align="center">
   <img src="Screenshot.png" alt="UserInterface" width="800">
 </p>
