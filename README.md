@@ -16,6 +16,7 @@
     - `Cmd + A` で全選択
     - 選択後に `Cmd + C` でデータ一括をCSV形式でコピー
 - **CSVエクスポート**: スキャン結果の全量を整理されたCSV形式でファイル出力
+- 自動更新:3秒ごとに検索結果を自動更新
 
 ### 🔸 Advanced Analysis (English)
 - **Standard Display**: Precisely identifies PHY modes such as "Wi-Fi 6 (11ax)" and legacy standards.
