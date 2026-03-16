@@ -1,5 +1,5 @@
 # Wi-Fi Scanner for macOS 🛜
-
+ 
 <p align="center">
   <img src="Screenshot.png" alt="UserInterface" width="800">
 </p>
