@@ -122,7 +122,6 @@ struct WifiNetwork: Identifiable, Equatable, Hashable {
         self.mode = raw.ibss ? "Ad Hoc" : "Infrastructure"
         
         // 規格 (Standard) 判定
-        // 注: mode11be は最新のSDKでのみ提供。未定義の場合は rawValue 等での判定が必要。
         if raw.supportsPHYMode(.mode11ax) { self.standard = "Wi-Fi 6 (11ax)" }
         else if raw.supportsPHYMode(.mode11ac) { self.standard = "Wi-Fi 5 (11ac)" }
         else if raw.supportsPHYMode(.mode11n) { self.standard = "Wi-Fi 4 (11n)" }
@@ -151,7 +150,7 @@ struct WifiNetwork: Identifiable, Equatable, Hashable {
             case .width80MHz: self.channelWidthString = "80MHz"
             case .width160MHz: self.channelWidthString = "160MHz"
             default:
-                // SDKが320MHzをサポートしていない場合の暫定処理（rawValueなどから推測可能な場合がある）
+                // SDKが320MHzをサポートしていない場合の暫定処理
                 self.channelWidthString = "320MHz?"
         }
         
