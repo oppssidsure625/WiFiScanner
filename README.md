@@ -33,6 +33,10 @@
 3. Open the DMG and drag **Wi-Fi Scanner** to your Applications folder.
 4. **Note:** Location Services must be enabled to perform Wi-Fi scans (required by macOS Privacy Policy).
 
+### 更新履歴 / Update history
+- 2026/03/16 v1.0.1 バンド幅を表示 / Add channel width support
+- 2026/03/16 v1.0.0 初版 / First release
+
 ---
 ## 📄 License
 This project is licensed under the MIT License.
