@@ -1,3 +1,8 @@
+/*
+Update history:
+・v1.0.1 2026/03/16 Add channel width support
+・v1.0.0 2026/03/16 First release
+*/
 import SwiftUI
 import CoreWLAN
 import CoreLocation
@@ -45,9 +50,9 @@ struct WifiRowView: View {
                     Image(systemName: "doc.on.doc").font(.system(size: 11))
                 }.buttonStyle(.plain)
             }
-            .frame(width: 240, alignment: .leading).clipped()
+            .frame(width: 200, alignment: .leading).clipped()
             
-            Text(item.standard).font(.system(size: 11, weight: .medium)).foregroundColor(.secondary).frame(width: 120, alignment: .leading).clipped()
+            Text(item.standard).font(.system(size: 11, weight: .medium)).foregroundColor(.secondary).frame(width: 125, alignment: .leading).clipped()
 
             HStack(spacing: 4) {
                 Text(item.bssid).font(.system(size: 13, weight: .regular, design: .monospaced)).foregroundColor(.secondary).lineLimit(1)
@@ -55,13 +60,19 @@ struct WifiRowView: View {
                     Image(systemName: "doc.on.doc").font(.system(size: 11))
                 }.buttonStyle(.plain)
             }
-            .frame(width: 205, alignment: .leading).clipped()
+            .frame(width: 180, alignment: .leading).clipped()
             
             Text(item.mode).font(.system(size: 11, weight: .bold)).padding(.horizontal, 6).padding(.vertical, 3)
                 .background(item.mode == "Infrastructure" ? Color.gray.opacity(0.1) : Color.orange.opacity(0.2))
                 .cornerRadius(4).frame(width: 100, alignment: .leading).clipped()
 
-            Text(item.bandString).font(.system(size: 13, weight: .bold)).foregroundColor(item.bandColor).frame(width: 75, alignment: .leading).clipped()
+            Text(item.bandString).font(.system(size: 13, weight: .bold)).foregroundColor(item.bandColor).frame(width: 70, alignment: .leading).clipped()
+            
+            // バンド幅 (Width)
+            Text(item.channelWidthString)
+                .font(.system(size: 12, weight: .bold, design: .monospaced))
+                .foregroundColor(item.channelWidthString.contains("320") ? .purple : .primary)
+                .frame(width: 75, alignment: .center).clipped()
             
             Text("\(item.channel)").font(.system(size: 14, weight: .bold, design: .monospaced)).frame(width: 50, alignment: .center).clipped()
             
@@ -75,9 +86,9 @@ struct WifiRowView: View {
             }
             .lineLimit(1).padding(.horizontal, 8).padding(.vertical, 4)
             .background(item.securityBgColor.opacity(0.15)).foregroundColor(item.securityBgColor)
-            .cornerRadius(6).frame(width: 170, alignment: .leading).clipped()
+            .cornerRadius(6).frame(width: 150, alignment: .leading).clipped()
             
-            Spacer(minLength: 20)
+            Spacer(minLength: 10)
             
             HStack(spacing: 8) {
                 Image(systemName: "wifi", variableValue: item.wifiStrengthValue)
@@ -99,7 +110,7 @@ struct WifiNetwork: Identifiable, Equatable, Hashable {
     let ssid, bssid: String
     let rssi, channel: Int
     let bandValue: Double
-    let bandString, security, authType, mode, standard: String
+    let bandString, channelWidthString, security, authType, mode, standard: String
     let securityBgColor, bandColor: Color
     let wifiStrengthValue: Double
 
@@ -110,14 +121,20 @@ struct WifiNetwork: Identifiable, Equatable, Hashable {
         self.channel = raw.wlanChannel?.channelNumber ?? 0
         self.mode = raw.ibss ? "Ad Hoc" : "Infrastructure"
         
+        // 規格 (Standard) 判定
+        // 注: mode11be は最新のSDKでのみ提供。未定義の場合は rawValue 等での判定が必要。
         if raw.supportsPHYMode(.mode11ax) { self.standard = "Wi-Fi 6 (11ax)" }
         else if raw.supportsPHYMode(.mode11ac) { self.standard = "Wi-Fi 5 (11ac)" }
         else if raw.supportsPHYMode(.mode11n) { self.standard = "Wi-Fi 4 (11n)" }
         else if raw.supportsPHYMode(.mode11g) { self.standard = "Wi-Fi 3 (11g)" }
         else if raw.supportsPHYMode(.mode11a) { self.standard = "Wi-Fi 2 (11a)" }
         else if raw.supportsPHYMode(.mode11b) { self.standard = "Wi-Fi 1 (11b)" }
-        else { self.standard = "Legacy" }
+        else {
+            // Wi-Fi 7 などの新しい規格が "Legacy" に落ちるのを防ぐための将来用フック
+            self.standard = "Wi-Fi 7/Next"
+        }
         
+        // 周波数帯 (Band)
         switch raw.wlanChannel?.channelBand {
             case .band2GHz: self.bandValue = 2.4
             case .band5GHz: self.bandValue = 5.0
@@ -127,6 +144,18 @@ struct WifiNetwork: Identifiable, Equatable, Hashable {
         self.bandString = bandValue > 0 ? "\(bandValue)GHz" : "--"
         self.bandColor = bandValue == 6.0 ? .purple : (bandValue == 5.0 ? .blue : .primary)
         
+        // バンド幅 (Channel Width)
+        switch raw.wlanChannel?.channelWidth {
+            case .width20MHz: self.channelWidthString = "20MHz"
+            case .width40MHz: self.channelWidthString = "40MHz"
+            case .width80MHz: self.channelWidthString = "80MHz"
+            case .width160MHz: self.channelWidthString = "160MHz"
+            default:
+                // SDKが320MHzをサポートしていない場合の暫定処理（rawValueなどから推測可能な場合がある）
+                self.channelWidthString = "320MHz?"
+        }
+        
+        // セキュリティ
         if raw.supportsSecurity(.wpa3Enterprise) { self.security = "WPA3"; self.authType = "Enterprise"; self.securityBgColor = .purple }
         else if raw.supportsSecurity(.wpa3Personal) { self.security = "WPA3"; self.authType = "Personal"; self.securityBgColor = .green }
         else if raw.supportsSecurity(.wpa2Enterprise) { self.security = "WPA2"; self.authType = "Enterprise"; self.securityBgColor = .indigo }
@@ -162,10 +191,10 @@ struct ContentView: View {
     
     let timer = Timer.publish(every: 3, on: .main, in: .common).autoconnect()
 
-    enum BandFilter: String, CaseIterable { case all = "All", band2G = "2.4G", band5G = "5G", band6G = "6G" }
+    enum BandFilter: String, CaseIterable { case all = "All", band2G = "2.4GHz", band5G = "5GHz", band6G = "6GHz" }
     enum SecurityFilter: String, CaseIterable { case all = "Any Security", wpa3 = "WPA3", wpa2 = "WPA2", wpa = "WPA", wep = "WEP", open = "OPEN" }
     enum RSSIFilter: String, CaseIterable { case all = "Any Strength", strong = ">-60", fair = ">-80" }
-    enum SortKey { case ssid, standard, bssid, band, channel, rssi }
+    enum SortKey { case ssid, standard, bssid, band, channel, rssi, width }
 
     var filteredNetworks: [WifiNetwork] {
         allNetworks.filter { net in
@@ -199,7 +228,6 @@ struct ContentView: View {
                         }
                 }
                 .listStyle(.inset)
-                // --- 修正箇所: Xcodeの警告に従い #selector を使用 ---
                 .onCommand(#selector(NSText.copy(_:))) {
                     copySelectedItemsAsCSV()
                     triggerToast(message: "Selected items copied as CSV")
@@ -225,7 +253,7 @@ struct ContentView: View {
             }
             .animation(.spring(), value: showToast)
         }
-        .frame(minWidth: 1150, minHeight: 700)
+        .frame(minWidth: 1220, minHeight: 700)
         .onAppear { locationManager.requestPermission(); updateStatus() }
         .onReceive(timer) { _ in
             if isAutoScanEnabled && !isScanning { scanWifi(clear: false) }
@@ -269,14 +297,15 @@ struct ContentView: View {
 
     private var columnHeaders: some View {
         HStack(spacing: 0) {
-            sortButton("SSID", key: .ssid, width: 240)
-            sortButton("Standard", key: .standard, width: 120)
-            sortButton("BSSID", key: .bssid, width: 205)
+            sortButton("SSID", key: .ssid, width: 200)
+            sortButton("Standard", key: .standard, width: 125)
+            sortButton("BSSID", key: .bssid, width: 180)
             Text("Mode").frame(width: 100, alignment: .leading)
-            sortButton("Band", key: .band, width: 75)
+            sortButton("Band", key: .band, width: 70)
+            sortButton("Width", key: .width, width: 75, alignment: .center)
             sortButton("CH", key: .channel, width: 50, alignment: .center)
-            Text("Security").frame(width: 170, alignment: .leading)
-            Spacer(minLength: 20)
+            Text("Security").frame(width: 150, alignment: .leading)
+            Spacer(minLength: 10)
             sortButton("Signal", key: .rssi, width: 95, alignment: .trailing)
         }
         .font(.system(size: 13, weight: .bold)).padding(.horizontal, 20).padding(.vertical, 10).background(Color(NSColor.windowBackgroundColor))
@@ -305,10 +334,10 @@ struct ContentView: View {
     func copySelectedItemsAsCSV() {
         let selectedItems = filteredNetworks.filter { selection.contains($0.bssid) }
         guard !selectedItems.isEmpty else { return }
-        let header = "SSID,Standard,BSSID,Band,CH,Security,RSSI"
+        let header = "SSID,Standard,BSSID,Band,Width,CH,Security,RSSI"
         let rows = selectedItems.map {
             let safeSSID = $0.ssid.replacingOccurrences(of: ",", with: "")
-            return "\(safeSSID),\($0.standard),\($0.bssid),\($0.bandString),\($0.channel),\($0.security) \($0.authType),\($0.rssi)dBm"
+            return "\(safeSSID),\($0.standard),\($0.bssid),\($0.bandString),\($0.channelWidthString),\($0.channel),\($0.security) \($0.authType),\($0.rssi)dBm"
         }.joined(separator: "\n")
         copyToClipboard(header + "\n" + rows)
     }
@@ -338,7 +367,13 @@ struct ContentView: View {
         allNetworks.sort { (a, b) -> Bool in
             let r: Bool
             switch sortKey {
-                case .ssid: r = a.ssid < b.ssid; case .standard: r = a.standard < b.standard; case .bssid: r = a.bssid < b.bssid; case .band: r = a.bandValue < b.bandValue; case .rssi: r = a.rssi < b.rssi; case .channel: r = a.channel < b.channel
+                case .ssid: r = a.ssid < b.ssid
+                case .standard: r = a.standard < b.standard
+                case .bssid: r = a.bssid < b.bssid
+                case .band: r = a.bandValue < b.bandValue
+                case .width: r = a.channelWidthString < b.channelWidthString
+                case .rssi: r = a.rssi < b.rssi
+                case .channel: r = a.channel < b.channel
             }
             return isAscending ? r : !r
         }
@@ -360,8 +395,8 @@ struct ContentView: View {
     func exportCSV() {
         let bom = "\u{FEFF}"; let now = Date(); let f = DateFormatter()
         f.dateFormat = "yyyy-MM-dd HH:mm:ss"; let ts = f.string(from: now)
-        let rows = filteredNetworks.map { "\(ts),\($0.ssid.replacingOccurrences(of: ",", with: "")),\($0.standard),\($0.bssid),\($0.mode),\($0.bandString),\($0.channel),\($0.security) \($0.authType),\($0.rssi)" }.joined(separator: "\n")
-        let csv = bom + "Timestamp,SSID,Standard,BSSID,Mode,Band,Channel,Security_Auth,RSSI\n" + rows
+        let rows = filteredNetworks.map { "\(ts),\($0.ssid.replacingOccurrences(of: ",", with: "")),\($0.standard),\($0.bssid),\($0.mode),\($0.bandString),\($0.channelWidthString),\($0.channel),\($0.security) \($0.authType),\($0.rssi)" }.joined(separator: "\n")
+        let csv = bom + "Timestamp,SSID,Standard,BSSID,Mode,Band,Width,Channel,Security_Auth,RSSI\n" + rows
         f.dateFormat = "yyyyMMdd_HHmmss"
         DispatchQueue.main.async {
             let sp = NSSavePanel(); sp.allowedContentTypes = [.commaSeparatedText]; sp.nameFieldStringValue = "wifi_audit_\(f.string(from: now)).csv"
