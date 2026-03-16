@@ -1,29 +1,39 @@
-﻿# Wi-Fi scanner for macOS 🛜
+# Wi-Fi Analyzer Pro for macOS 🛜
+
+A professional-grade Wi-Fi scanning and analysis tool built with SwiftUI. Designed for network engineers to provide precise, real-time wireless insights.
 
 <p align="center">
   <img src="Screenshot.png" alt="UserInterface" width="800">
 </p>
 
-🔸 機能 (Japanese)
-・規格の表示:"Wi-Fi 6(11ax)"といった規格を表示
-・認証情報の表示:エンタープライズ認証かパーソナル認証かを表示
-・アドホック接続の検出:InfrastructureとAd Hocの判定
-・周波数帯ごとのセグメントボタンによるフィルタリング
-・SSIDとBSSIDは1クリックコピー可能
-・CSV形式でのコピー（1クリックで単品、Cmd+クリックで複数個指定、`Cmd+A`で全選択などの後、`Cmd+C`でCSV形式コピー）
-・CSVエクスポート:全量をそのままCSV形式で出力
+### 🔸 機能 (Japanese)
+- **規格の表示**: "Wi-Fi 6 (11ax)" をはじめ、レガシー規格から最新規格まで正確に表示
+- **認証情報の可視化**: エンタープライズ認証とパーソナル認証をアイコンと色で判別可能
+- **モード判定**: Infrastructure と Ad Hoc (IBSS) 接続を厳密に識別
+- **高速フィルタリング**: 周波数帯（2.4G/5G/6G）をセグメントボタンで瞬時に切り替え
+- **スマートコピー**: SSIDとBSSIDを1クリックでコピー（コピー時にはトースト通知を表示）
+- **高度なCSVコピー**: 
+    - 1クリックで単品コピー
+    - `Cmd + クリック` で複数項目を選択
+    - `Cmd + A` で全選択
+    - 選択後に `Cmd + C` でデータ一括をCSV形式でコピー
+- **CSVエクスポート**: スキャン結果の全量を整理されたCSV形式でファイル出力
 
-🔸 Advanced Analysis (English)
-• Display of standards: Displays standards such as "Wi-Fi 6 (11ax)"
-• Display of authentication information: Displays whether it is enterprise authentication or personal authentication
-• Detection of ad-hoc connections: Determines between Infrastructure and Ad Hoc connections
-• Filtering by segment button for each frequency band
-• SSID and BSSID can be copied with one click
-• Copy in CSV format (one item with one click, multiple items with Cmd+click, select all with `Cmd+A`, then copy in CSV format with `Cmd+C`)
-• CSV export: Outputs the entire amount as is in CSV format
+### 🔸 Advanced Analysis (English)
+- **Standard Display**: Precisely identifies PHY modes such as "Wi-Fi 6 (11ax)" and legacy standards.
+- **Authentication Visualizer**: Distinguishes between Enterprise and Personal authentication with dedicated icons.
+- **Mode Detection**: Accurately determines Infrastructure and Ad Hoc (IBSS) connections.
+- **Band Filtering**: Quick filtering by frequency band (2.4G/5G/6G) via segmented buttons.
+- **Smart Copy**: One-click SSID/BSSID copy with visual toast notifications.
+- **Advanced Selection**: Support for `Cmd+A` (Select All), `Cmd+Click` (Multi-select), and `Cmd+C` (Copy as CSV).
+- **Professional Export**: Export your complete audit logs to a clean CSV file.
 
-🔸 インストール方法 / Quick Start
+### 🔸 インストール方法 / Quick Start
 1. Go to the [**Releases**](https://github.com/oppssidsure625/WiFiScanner/releases) page.
 2. Download the latest `WiFiScanner_Installer.dmg`.
 3. Open the DMG and drag **Wi-Fi Scanner** to your Applications folder.
 4. **Note:** Location Services must be enabled to perform Wi-Fi scans (required by macOS Privacy Policy).
+
+---
+## 📄 License
+This project is licensed under the MIT License.
